@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { allQuestions } from './data/questions.ts';
+import { allQuestions } from './data/questions'; // Rimosso .ts
 import type { Question } from './types';
 import LoadingScreen from './components/LoadingScreen';
 import ResultScreen from './components/ResultScreen';
@@ -15,45 +15,58 @@ const App: React.FC = () => {
   const [score, setScore] = useState(0);
   const [streak, setStreak] = useState(0);
   const [gameFinished, setGameFinished] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
   
   const startNewGame = useCallback(() => {
-    // 1. Filter out recently used questions
-    const availableQuestions = allQuestions.filter(q => !recentQuestionIds.has(q.id));
-    
-    // 2. If we don't have enough "fresh" questions, fall back to the full list
-    let questionsToUse = availableQuestions.length >= GAME_LENGTH ? availableQuestions : allQuestions;
-    
-    // 3. Shuffle and select questions for the new game
-    const shuffled = [...questionsToUse].sort(() => 0.5 - Math.random());
-    const selectedQuestions = shuffled.slice(0, GAME_LENGTH);
-    
-    // 4. Update the set of recent questions
-    setRecentQuestionIds(prevIds => {
-      const newIds = new Set(prevIds);
-      selectedQuestions.forEach(q => newIds.add(q.id));
-      
-      // 5. Prune the oldest question IDs if the set gets too large
-      if (newIds.size > RECENCY_LIMIT) {
-        const idsArray = Array.from(newIds);
-        const toRemove = idsArray.slice(0, newIds.size - RECENCY_LIMIT);
-        toRemove.forEach(id => newIds.delete(id));
+    try {
+      // Verifica che allQuestions sia definito e sia un array
+      if (!allQuestions || !Array.isArray(allQuestions) || allQuestions.length === 0) {
+        console.error('No questions available');
+        return;
       }
-      return newIds;
-    });
 
-    // 6. Reset game state
-    setGameQuestions(selectedQuestions);
-    setCurrentQuestionIndex(0);
-    setScore(0);
-    setStreak(0);
-    setGameFinished(false);
+      // 1. Filter out recently used questions
+      const availableQuestions = allQuestions.filter(q => !recentQuestionIds.has(q.id));
+      
+      // 2. If we don't have enough "fresh" questions, fall back to the full list
+      const questionsToUse = availableQuestions.length >= GAME_LENGTH ? availableQuestions : allQuestions;
+      
+      // 3. Shuffle and select questions for the new game
+      const shuffled = [...questionsToUse].sort(() => Math.random() - 0.5);
+      const selectedQuestions = shuffled.slice(0, GAME_LENGTH);
+      
+      // 4. Update the set of recent questions
+      setRecentQuestionIds(prevIds => {
+        const newIds = new Set(prevIds);
+        selectedQuestions.forEach(q => newIds.add(q.id));
+        
+        // 5. Prune the oldest question IDs if the set gets too large
+        if (newIds.size > RECENCY_LIMIT) {
+          const idsArray = Array.from(newIds);
+          const toRemove = idsArray.slice(0, newIds.size - RECENCY_LIMIT);
+          toRemove.forEach(id => newIds.delete(id));
+        }
+        return newIds;
+      });
+
+      // 6. Reset game state
+      setGameQuestions(selectedQuestions);
+      setCurrentQuestionIndex(0);
+      setScore(0);
+      setStreak(0);
+      setGameFinished(false);
+      setIsInitialized(true);
+    } catch (error) {
+      console.error('Error starting new game:', error);
+    }
   }, [recentQuestionIds]);
 
   useEffect(() => {
     // Start the first game on component mount
-    startNewGame();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (!isInitialized) {
+      startNewGame();
+    }
+  }, [isInitialized, startNewGame]);
 
   const handleAnswer = (isCorrect: boolean) => {
     if (isCorrect) {
@@ -73,7 +86,7 @@ const App: React.FC = () => {
   };
 
   // Show loading screen while questions are being prepared
-  if (gameQuestions.length === 0) {
+  if (!isInitialized || gameQuestions.length === 0) {
     return <LoadingScreen />;
   }
 
