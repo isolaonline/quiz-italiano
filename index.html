@@ -2,30 +2,29 @@
 <html lang="it">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Quiz di Italiano Avanzato</title>
+    <title>Quiz Italiano - Sfida di Cultura e Lingua</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-    </style>
+    
+    <!-- Metodo Classico e Affidabile per caricare React -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+
+    <!-- Questo è il "traduttore" che permette al browser di leggere il codice speciale (JSX) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script type="importmap">
 {
   "imports": {
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
     "react/": "https://aistudiocdn.com/react@^19.2.0/",
     "react": "https://aistudiocdn.com/react@^19.2.0",
-    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.0",
-    "vite": "https://aistudiocdn.com/vite@^7.2.0"
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/"
   }
 }
 </script>
 </head>
-  <body>
+  <body class="bg-slate-900">
     <div id="root"></div>
-    <script type="module" src="/index.tsx"></script>
+    <!-- Lo script principale ora funziona senza conflitti -->
+    <script type="text/babel" src="./index.tsx"></script>
   </body>
 </html>

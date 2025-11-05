@@ -1,114 +1,140 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { allQuestions } from './data/questions'; // Rimosso .ts
-import type { Question } from './types';
-import LoadingScreen from './components/LoadingScreen';
-import ResultScreen from './components/ResultScreen';
-import QuizScreen from './components/QuizScreen';
+import React, { useState } from 'react';
+import { GameQuestion, QuestionTemplate, GameState, Difficulty } from './types';
+import { questionTemplates } from './constants';
+import StartScreen from './components/StartScreen';
+import QuestionCard from './components/QuestionCard';
+import ResultsScreen from './components/ResultsScreen';
+import { IconGraduationCap } from './components/IconComponents';
 
-const GAME_LENGTH = 20;
-const RECENCY_LIMIT = 60; // 3 games * 20 questions
+// Funzione per costruire il set di domande finale, mescolando le opzioni.
+const buildUniqueQuestions = (templates: QuestionTemplate[]): GameQuestion[] => {
+  return templates.map(item => {
+    const options = [item.w1, item.c, item.w2].sort(() => Math.random() - 0.5);
+    return {
+      question: item.q,
+      options: options,
+      correct: options.indexOf(item.c),
+      explanation: item.expl,
+      category: item.category,
+      difficulty: item.difficulty
+    };
+  });
+};
 
-const App: React.FC = () => {
-  const [gameQuestions, setGameQuestions] = useState<Question[]>([]);
-  const [recentQuestionIds, setRecentQuestionIds] = useState<Set<number>>(new Set());
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+const ALL_QUESTIONS = buildUniqueQuestions(questionTemplates);
+const GAME_LENGTH = 10; // Gioco da 10 domande
+
+const App = () => {
+  const [gameState, setGameState] = useState<GameState>('start');
+  const [gameQuestions, setGameQuestions] = useState<GameQuestion[]>([]);
+  const [currentQuestion, setCurrentQuestion] = useState(0);
   const [score, setScore] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [showResult, setShowResult] = useState(false);
   const [streak, setStreak] = useState(0);
-  const [gameFinished, setGameFinished] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false);
   
-  const startNewGame = useCallback(() => {
-    try {
-      // Verifica che allQuestions sia definito e sia un array
-      if (!allQuestions || !Array.isArray(allQuestions) || allQuestions.length === 0) {
-        console.error('No questions available');
-        return;
-      }
+  const [lifelineUsed, setLifelineUsed] = useState(false); 
+  const [lifelineActive, setLifelineActive] = useState(false); 
+  const [hiddenOptions, setHiddenOptions] = useState<number[]>([]); 
 
-      // 1. Filter out recently used questions
-      const availableQuestions = allQuestions.filter(q => !recentQuestionIds.has(q.id));
-      
-      // 2. If we don't have enough "fresh" questions, fall back to the full list
-      const questionsToUse = availableQuestions.length >= GAME_LENGTH ? availableQuestions : allQuestions;
-      
-      // 3. Shuffle and select questions for the new game
-      const shuffled = [...questionsToUse].sort(() => Math.random() - 0.5);
-      const selectedQuestions = shuffled.slice(0, GAME_LENGTH);
-      
-      // 4. Update the set of recent questions
-      setRecentQuestionIds(prevIds => {
-        const newIds = new Set(prevIds);
-        selectedQuestions.forEach(q => newIds.add(q.id));
-        
-        // 5. Prune the oldest question IDs if the set gets too large
-        if (newIds.size > RECENCY_LIMIT) {
-          const idsArray = Array.from(newIds);
-          const toRemove = idsArray.slice(0, newIds.size - RECENCY_LIMIT);
-          toRemove.forEach(id => newIds.delete(id));
-        }
-        return newIds;
-      });
-
-      // 6. Reset game state
-      setGameQuestions(selectedQuestions);
-      setCurrentQuestionIndex(0);
-      setScore(0);
-      setStreak(0);
-      setGameFinished(false);
-      setIsInitialized(true);
-    } catch (error) {
-      console.error('Error starting new game:', error);
+  const startNewGame = (difficulty: Difficulty | 'Tutte') => {
+    let filteredQuestions = ALL_QUESTIONS;
+    if (difficulty !== 'Tutte') {
+        filteredQuestions = ALL_QUESTIONS.filter(q => q.difficulty === difficulty);
     }
-  }, [recentQuestionIds]);
+    const shuffled = [...filteredQuestions].sort(() => Math.random() - 0.5);
+    setGameQuestions(shuffled.slice(0, GAME_LENGTH)); 
+    setCurrentQuestion(0);
+    setScore(0);
+    setSelectedAnswer(null);
+    setShowResult(false);
+    setStreak(0);
+    setLifelineUsed(false);
+    setLifelineActive(false);
+    setHiddenOptions([]);
+    setGameState('playing');
+  };
 
-  useEffect(() => {
-    // Start the first game on component mount
-    if (!isInitialized) {
-      startNewGame();
-    }
-  }, [isInitialized, startNewGame]);
-
-  const handleAnswer = (isCorrect: boolean) => {
-    if (isCorrect) {
-      setScore(prevScore => prevScore + 1);
-      setStreak(prevStreak => prevStreak + 1);
+  const handleAnswer = (index: number) => {
+    if (showResult) return; 
+    
+    setSelectedAnswer(index);
+    setShowResult(true);
+    
+    if (index === gameQuestions[currentQuestion].correct) {
+      setScore(score + 1);
+      setStreak(streak + 1); 
     } else {
-      setStreak(0);
+      setStreak(0); 
     }
   };
 
   const nextQuestion = () => {
-    if (currentQuestionIndex < GAME_LENGTH - 1) {
-      setCurrentQuestionIndex(prevIndex => prevIndex + 1);
+    const gameLength = gameQuestions.length;
+    if (currentQuestion < gameLength - 1) {
+      setCurrentQuestion(currentQuestion + 1);
+      setSelectedAnswer(null);
+      setShowResult(false);
+      setLifelineActive(false);
+      setHiddenOptions([]);
     } else {
-      setGameFinished(true);
+      setGameState('finished');
     }
   };
 
-  // Show loading screen while questions are being prepared
-  if (!isInitialized || gameQuestions.length === 0) {
-    return <LoadingScreen />;
-  }
-
-  // Show result screen when the game is finished
-  if (gameFinished) {
-    return <ResultScreen score={score} totalQuestions={GAME_LENGTH} onRestart={startNewGame} />;
-  }
+  const playAgain = () => {
+    setGameState('start');
+  };
   
-  const currentQuestion = gameQuestions[currentQuestionIndex];
+  const handleLifeline = () => {
+    if (lifelineUsed || showResult) return; 
 
-  // Show the main quiz screen
+    setLifelineUsed(true);
+    setLifelineActive(true);
+
+    const correctIndex = gameQuestions[currentQuestion].correct;
+    const incorrectOptions = [0, 1, 2].filter(
+      (index) => index !== correctIndex
+    );
+    incorrectOptions.sort(() => 0.5 - Math.random());
+    setHiddenOptions([incorrectOptions[0]]); // Nasconde una opzione errata
+  };
+
+  if (gameState === 'start') {
+    return <StartScreen onStart={startNewGame} />;
+  }
+
+  if (gameState === 'playing' && gameQuestions.length > 0) {
+    return <QuestionCard 
+        question={gameQuestions[currentQuestion]}
+        onAnswer={handleAnswer}
+        nextQuestion={nextQuestion}
+        currentQuestion={currentQuestion}
+        gameLength={gameQuestions.length}
+        score={score}
+        streak={streak}
+        selectedAnswer={selectedAnswer}
+        showResult={showResult}
+        handleLifeline={handleLifeline}
+        lifelineUsed={lifelineUsed}
+        lifelineActive={lifelineActive}
+        hiddenOptions={hiddenOptions}
+    />;
+  }
+
+  if (gameState === 'finished') {
+    return <ResultsScreen score={score} gameLength={gameQuestions.length} onPlayAgain={playAgain} />
+  }
+
+  // Fallback / Loading state
   return (
-    <QuizScreen
-      question={currentQuestion}
-      onAnswer={handleAnswer}
-      nextQuestion={nextQuestion}
-      currentQuestionIndex={currentQuestionIndex}
-      totalQuestions={GAME_LENGTH}
-      score={score}
-      streak={streak}
-    />
-  );
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
+        <div className="flex flex-col items-center text-blue-300 text-2xl font-bold animate-pulse">
+          <IconGraduationCap className="w-16 h-16 mb-4" />
+          Caricamento Interfaccia...
+        </div>
+      </div>
+    );
 };
 
 export default App;
