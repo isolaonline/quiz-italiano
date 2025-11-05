@@ -6,25 +6,35 @@
     <title>Quiz Italiano - Sfida di Cultura e Lingua</title>
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Metodo Classico e Affidabile per caricare React -->
-    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
-
     <!-- Questo è il "traduttore" che permette al browser di leggere il codice speciale (JSX) -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <script type="importmap">
+    <!-- 
+      Import Map: Indica al browser dove trovare i pacchetti 'react' e 'react-dom/client'
+      quando vengono richiesti con 'import' negli script. Questo è il metodo moderno
+      per usare moduli senza un build system come Webpack o Vite.
+      Abbiamo rimosso i vecchi tag <script> per React che creavano un conflitto.
+    -->
+    <script type="importmap">
 {
   "imports": {
+    "react": "https://esm.sh/react@18.2.0",
+    "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
     "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "react": "https://aistudiocdn.com/react@^19.2.0",
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/"
   }
 }
 </script>
+  <link rel="stylesheet" href="/index.css">
 </head>
   <body class="bg-slate-900">
     <div id="root"></div>
-    <!-- Lo script principale ora funziona senza conflitti -->
-    <script type="text/babel" src="./index.tsx"></script>
-  </body>
+    <!-- 
+      Lo script principale dell'applicazione. 
+      'type="text/babel"' dice a Babel di tradurlo prima che il browser lo esegua.
+      'data-type="module"' è essenziale per dire a Babel di trattare questo file
+      e tutti i file che importa come moduli JavaScript (ESM).
+    -->
+    <script type="text/babel" data-type="module" src="./index.tsx"></script>
+  <script type="module" src="/index.tsx"></script>
+</body>
 </html>

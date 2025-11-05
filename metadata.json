@@ -1,5 +1,5 @@
 {
   "name": "Quiz Italiano",
-  "description": "An interactive quiz application to test and improve your Italian language skills. It presents multiple-choice questions on vocabulary, grammar, and culture, providing immediate feedback and a final score.",
+  "description": "Un'applicazione di quiz interattiva per testare e migliorare le tue competenze nella lingua italiana. Presenta domande a scelta multipla su vocabolario, grammatica e cultura, fornendo un feedback immediato e un punteggio finale.",
   "requestFramePermissions": []
 }

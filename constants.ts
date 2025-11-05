@@ -1,6 +1,6 @@
 import React from 'react';
-import { QuestionTemplate, Category, Difficulty } from './types';
-import { IconBookOpen, IconEdit3, IconGraduationCap, IconTarget, IconType } from './components/IconComponents';
+import { QuestionTemplate, Category, Difficulty } from './types.ts';
+import { IconBookOpen, IconEdit3, IconGraduationCap, IconTarget, IconType } from './components/IconComponents.tsx';
 
 // FIX: Replaced JSX with React.createElement because .ts files do not support JSX syntax.
 // This caused the compiler to misinterpret the code as a type assertion.

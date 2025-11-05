@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { GameQuestion, QuestionTemplate, GameState, Difficulty } from './types';
-import { questionTemplates } from './constants';
-import StartScreen from './components/StartScreen';
-import QuestionCard from './components/QuestionCard';
-import ResultsScreen from './components/ResultsScreen';
-import { IconGraduationCap } from './components/IconComponents';
+import { GameQuestion, QuestionTemplate, GameState, Difficulty } from './types.ts';
+import { questionTemplates } from './constants.ts';
+import StartScreen from './components/StartScreen.tsx';
+import QuestionCard from './components/QuestionCard.tsx';
+import ResultsScreen from './components/ResultsScreen.tsx';
+import { IconGraduationCap } from './components/IconComponents.tsx';
 
 // Funzione per costruire il set di domande finale, mescolando le opzioni.
 const buildUniqueQuestions = (templates: QuestionTemplate[]): GameQuestion[] => {
