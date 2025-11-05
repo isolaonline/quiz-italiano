@@ -1,0 +1,5 @@
+{
+  "name": "Quiz di Italiano Avanzato",
+  "description": "Un'applicazione web per testare e migliorare la conoscenza della lingua italiana attraverso quiz su grammatica, vocabolario, sintassi e figure retoriche. Include spiegazioni dettagliate per ogni domanda.",
+  "requestFramePermissions": []
+}
