@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { allQuestions } from './data/questions';
-import type { Question } from '../types';
+import { allQuestions } from './data/questions.ts';
+import type { Question } from './types';
 import LoadingScreen from './components/LoadingScreen';
 import ResultScreen from './components/ResultScreen';
 import QuizScreen from './components/QuizScreen';
